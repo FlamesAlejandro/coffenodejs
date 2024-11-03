@@ -1,49 +1,91 @@
-version: '1.0'
+version: '3.8'
 
 services:
   app:
-    build: .
-    container_name: node_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coffee-shop-backend
     restart: always
-    env_file:
-      - .env
     ports:
-      - "3000:3000"
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=mysql://root:password@mysql:3306/coffeeshopdb
+      - MONGO_URL=mongodb://mongo:27017/coffeeshopdb
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - mysql
       - mongo
       - redis
+    networks:
+      - coffee-network
 
   mysql:
-    image: mysql:8
-    container_name: mysql_db
+    image: mysql:8.0
+    container_name: mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: mydatabase
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: coffeeshopdb
     ports:
-      - "3306:3306"
+      - '3307:3306'
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+    networks:
+      - coffee-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - '8080:80'  # Exponemos phpMyAdmin en el puerto 8080
+    depends_on:
+      - mysql
+    networks:
+      - coffee-network
 
   mongo:
-    image: mongo:5
-    container_name: mongo_db
+    image: mongo:5.0
+    container_name: mongo
     restart: always
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
-      - mongo_data:/data/db
+      - mongo-data:/data/db
+    networks:
+      - coffee-network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/coffeeshopdb
+    ports:
+      - '8081:8081'  # Exponemos Mongo Express en el puerto 8081
+    depends_on:
+      - mongo
+    networks:
+      - coffee-network
 
   redis:
-    image: redis:7
-    container_name: redis_cache
+    image: redis:6.2
+    container_name: redis
     restart: always
     ports:
-      - "6379:6379"
+      - '6379:6379'
+    networks:
+      - coffee-network
 
 volumes:
-  mysql_data:
-  mongo_data:
+  mysql-data:
+  mongo-data:
+
+networks:
+  coffee-network:
+    driver: bridge

@@ -1,0 +1,21 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Coffee Shop API",
+      "version": "1.0.0",
+      "description": "API for managing the Coffee Shop"
+    },
+    "paths": {
+      "/": {
+        "get": {
+          "summary": "Root endpoint",
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
+        }
+      }
+    }
+  }
+  

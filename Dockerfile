@@ -1,23 +1,26 @@
-# Usa una imagen de Node como base
-FROM node:18
+# Imagen base
+FROM node:18-alpine
 
-# Crea y establece el directorio de trabajo en el contenedor
-WORKDIR /app
+# Crear directorio de la aplicación
+WORKDIR /usr/src/app
 
-# Copia el package.json y package-lock.json
+# Copiar package.json y package-lock.json
 COPY package*.json ./
 
-# Instala las dependencias
+# Instalar dependencias
 RUN npm install
 
-# Copia el resto de la aplicación
+# Copiar el resto del código fuente
 COPY . .
 
-# Compila el proyecto TypeScript
+# Instalar Prisma client y generar los archivos de cliente
+RUN npx prisma generate
+
+# Compilar el proyecto TypeScript
 RUN npm run build
 
-# Expone el puerto en el que se ejecutará la app
+# Exponer el puerto en el que corre el servidor
 EXPOSE 3000
 
-# Define el comando para iniciar la aplicación
-CMD ["npm", "start"]
+# Comando para correr la aplicación
+CMD ["npm", "run", "start"]
